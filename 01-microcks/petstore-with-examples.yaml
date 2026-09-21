@@ -1,0 +1,120 @@
+openapi: "3.0.0"
+info:
+  title: Petstore
+  version: "1.0.0"
+  description: >
+    API de ejemplo para la PoC de Microcks. Incluye examples y dispatcher scripts.
+
+paths:
+  /pet/findByStatus:
+    get:
+      summary: Busca mascotas por estado
+      operationId: findPetsByStatus
+      x-microcks-operation:
+        dispatcher: URI_PARAMS
+        dispatcherRules: status
+      parameters:
+        - name: status
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [available, pending, sold]
+          examples:
+            available:
+              value: available
+            pending:
+              value: pending
+            sold:
+              value: sold
+      responses:
+        "200":
+          description: Lista de mascotas encontradas
+          content:
+            application/json:
+              examples:
+                available:
+                  summary: Mascotas disponibles
+                  value:
+                    - id: 1
+                      name: "Firulais"
+                      status: "available"
+                      category:
+                        id: 1
+                        name: "Dogs"
+                    - id: 2
+                      name: "Misifus"
+                      status: "available"
+                      category:
+                        id: 2
+                        name: "Cats"
+                pending:
+                  summary: Mascotas en adopción
+                  value:
+                    - id: 3
+                      name: "Rex"
+                      status: "pending"
+                      category:
+                        id: 1
+                        name: "Dogs"
+                sold:
+                  summary: Mascotas vendidas
+                  value:
+                    - id: 4
+                      name: "Luna"
+                      status: "sold"
+                      category:
+                        id: 2
+                        name: "Cats"
+
+  /pet/{petId}:
+    get:
+      summary: Busca una mascota por ID
+      operationId: getPetById
+      x-microcks-operation:
+        dispatcher: SCRIPT
+        dispatcherRules: |
+          def id = mockRequest.getURIParameters().get("petId")
+          if (id == "1") return "pet_1"
+          if (id == "2") return "pet_2"
+          return "pet_1"
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Mascota encontrada
+          content:
+            application/json:
+              examples:
+                pet_1:
+                  summary: Mascota con ID 1
+                  value:
+                    id: 1
+                    name: "Firulais"
+                    status: "available"
+                    category:
+                      id: 1
+                      name: "Dogs"
+                    photoUrls:
+                      - "https://example.com/firulais.jpg"
+                    tags:
+                      - id: 1
+                        name: "friendly"
+                pet_2:
+                  summary: Mascota con ID 2
+                  value:
+                    id: 2
+                    name: "Misifus"
+                    status: "available"
+                    category:
+                      id: 2
+                      name: "Cats"
+                    photoUrls:
+                      - "https://example.com/misifus.jpg"
+                    tags:
+                      - id: 2
+                        name: "indoor"

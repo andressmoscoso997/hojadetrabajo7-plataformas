@@ -1,0 +1,275 @@
+openapi: "3.0.0"
+info:
+  title: Supercars
+  version: "1.0.0"
+  description: >
+    API de catálogo de autos de alta gama para la PoC de Microcks.
+    Demuestra dos estrategias de mocking dinámico: URI_PARAMS (query param)
+    y URI_PARTS (path param), incluyendo respuestas de error 404.
+
+paths:
+  /cars:
+    get:
+      summary: Lista los autos de una marca
+      operationId: listCarsByBrand
+      # Microcks elige el ejemplo cuyo nombre coincide con el valor de ?brand=
+      x-microcks-operation:
+        dispatcher: URI_PARAMS
+        dispatcherRules: brand
+      parameters:
+        - name: brand
+          in: query
+          required: true
+          description: Marca del auto
+          schema:
+            type: string
+          examples:
+            ferrari:
+              value: ferrari
+            lamborghini:
+              value: lamborghini
+            porsche:
+              value: porsche
+            mclaren:
+              value: mclaren
+            unknown_brand:
+              value: toyota
+      responses:
+        "200":
+          description: Autos de la marca solicitada
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CarSummary"
+              examples:
+                ferrari:
+                  summary: Autos Ferrari
+                  value:
+                    - id: "ferrari-sf90"
+                      brand: "Ferrari"
+                      model: "SF90 Stradale"
+                      year: 2024
+                      horsepower: 986
+                      priceUsd: 524000
+                    - id: "ferrari-296gtb"
+                      brand: "Ferrari"
+                      model: "296 GTB"
+                      year: 2024
+                      horsepower: 819
+                      priceUsd: 323000
+                lamborghini:
+                  summary: Autos Lamborghini
+                  value:
+                    - id: "lamborghini-revuelto"
+                      brand: "Lamborghini"
+                      model: "Revuelto"
+                      year: 2024
+                      horsepower: 1001
+                      priceUsd: 608000
+                    - id: "lamborghini-huracan-sto"
+                      brand: "Lamborghini"
+                      model: "Huracán STO"
+                      year: 2023
+                      horsepower: 631
+                      priceUsd: 335000
+                porsche:
+                  summary: Autos Porsche
+                  value:
+                    - id: "porsche-911-gt3rs"
+                      brand: "Porsche"
+                      model: "911 GT3 RS"
+                      year: 2024
+                      horsepower: 518
+                      priceUsd: 241000
+                mclaren:
+                  summary: Autos McLaren
+                  value:
+                    - id: "mclaren-750s"
+                      brand: "McLaren"
+                      model: "750S"
+                      year: 2024
+                      horsepower: 740
+                      priceUsd: 324000
+        "404":
+          description: Marca no disponible en el catálogo
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                unknown_brand:
+                  summary: Marca fuera del catálogo de alta gama
+                  value:
+                    code: 404
+                    message: "La marca solicitada no pertenece al catálogo de alta gama"
+
+  /cars/{carId}:
+    get:
+      summary: Obtiene la ficha técnica de un auto
+      operationId: getCarById
+      # Microcks elige el ejemplo cuyo nombre coincide con el valor de {carId}
+      x-microcks-operation:
+        dispatcher: URI_PARTS
+        dispatcherRules: carId
+      parameters:
+        - name: carId
+          in: path
+          required: true
+          description: Identificador del auto (marca-modelo)
+          schema:
+            type: string
+          examples:
+            ferrari_sf90:
+              value: ferrari-sf90
+            lamborghini_revuelto:
+              value: lamborghini-revuelto
+            porsche_gt3rs:
+              value: porsche-911-gt3rs
+            not_found:
+              value: bugatti-chiron
+      responses:
+        "200":
+          description: Ficha técnica del auto
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CarDetail"
+              examples:
+                ferrari_sf90:
+                  summary: Ferrari SF90 Stradale
+                  value:
+                    id: "ferrari-sf90"
+                    brand: "Ferrari"
+                    model: "SF90 Stradale"
+                    year: 2024
+                    engine: "V8 4.0L biturbo + 3 motores eléctricos (híbrido enchufable)"
+                    horsepower: 986
+                    acceleration0to100s: 2.5
+                    topSpeedKmh: 340
+                    priceUsd: 524000
+                    country: "Italia"
+                lamborghini_revuelto:
+                  summary: Lamborghini Revuelto
+                  value:
+                    id: "lamborghini-revuelto"
+                    brand: "Lamborghini"
+                    model: "Revuelto"
+                    year: 2024
+                    engine: "V12 6.5L atmosférico + 3 motores eléctricos (híbrido enchufable)"
+                    horsepower: 1001
+                    acceleration0to100s: 2.5
+                    topSpeedKmh: 350
+                    priceUsd: 608000
+                    country: "Italia"
+                porsche_gt3rs:
+                  summary: Porsche 911 GT3 RS
+                  value:
+                    id: "porsche-911-gt3rs"
+                    brand: "Porsche"
+                    model: "911 GT3 RS"
+                    year: 2024
+                    engine: "Bóxer 6 cilindros 4.0L atmosférico"
+                    horsepower: 518
+                    acceleration0to100s: 3.2
+                    topSpeedKmh: 296
+                    priceUsd: 241000
+                    country: "Alemania"
+        "404":
+          description: Auto no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              examples:
+                not_found:
+                  summary: Auto inexistente en el catálogo
+                  value:
+                    code: 404
+                    message: "No existe un auto con ese identificador en el catálogo"
+
+  /brands:
+    get:
+      summary: Lista las marcas disponibles en el catálogo
+      operationId: listBrands
+      responses:
+        "200":
+          description: Marcas de alta gama disponibles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Brand"
+              examples:
+                all_brands:
+                  summary: Todas las marcas del catálogo
+                  value:
+                    - id: "ferrari"
+                      name: "Ferrari"
+                      country: "Italia"
+                      founded: 1939
+                    - id: "lamborghini"
+                      name: "Lamborghini"
+                      country: "Italia"
+                      founded: 1963
+                    - id: "porsche"
+                      name: "Porsche"
+                      country: "Alemania"
+                      founded: 1931
+                    - id: "mclaren"
+                      name: "McLaren"
+                      country: "Reino Unido"
+                      founded: 1985
+
+components:
+  schemas:
+    CarSummary:
+      type: object
+      required: [id, brand, model]
+      properties:
+        id:
+          type: string
+        brand:
+          type: string
+        model:
+          type: string
+        year:
+          type: integer
+        horsepower:
+          type: integer
+        priceUsd:
+          type: integer
+    CarDetail:
+      allOf:
+        - $ref: "#/components/schemas/CarSummary"
+        - type: object
+          properties:
+            engine:
+              type: string
+            acceleration0to100s:
+              type: number
+            topSpeedKmh:
+              type: integer
+            country:
+              type: string
+    Brand:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        country:
+          type: string
+        founded:
+          type: integer
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string

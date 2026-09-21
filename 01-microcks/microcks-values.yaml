@@ -1,0 +1,57 @@
+# =====================================================================
+# Microcks Helm Values — Configuración para Kind (desarrollo local)
+# =====================================================================
+#
+# Referencia completa de valores:
+#   https://github.com/microcks/microcks/tree/main/install/kubernetes
+# =====================================================================
+
+microcks:
+  # Nombre del servicio en Kubernetes
+  url: microcks.microcks.svc.cluster.local
+
+  # Configuración de la imagen
+  image:
+    repository: microcks/microcks
+    tag: 1.15.0
+    pullPolicy: IfNotPresent
+
+  # Recursos asignados al pod de Microcks
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      # Sin límite de CPU (igual que el chart oficial): con 500m el arranque
+      # puede superar el liveness probe (~55s) y dejar el pod en CrashLoopBackOff
+
+# Configuración de MongoDB (backend de persistencia)
+mongodb:
+  install: true
+  image:
+    repository: mongo
+    tag: "4.4"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "250m"
+
+# Keycloak deshabilitado para simplificar el entorno local
+keycloak:
+  enabled: false   # Deshabilita la autenticación OAuth2 en Microcks
+  install: false   # No despliega el pod de Keycloak
+  # Sin Keycloak, Microcks usa autenticación anónima (válido para PoC local)
+
+# Ingress deshabilitado — se usa port-forward en el entorno Kind
+# (la clave del chart es "ingresses" al primer nivel, no "ingress.enabled")
+ingresses: false
+
+# Configuración del postman runner (para test runner)
+postman:
+  image:
+    repository: microcks/microcks-postman-runtime
+    tag: 0.7.2
